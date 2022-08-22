@@ -30,6 +30,14 @@ public class Student {
         this.email = email;
     }
 
+    public Student(String username, String token, String fullName, String phoneNumber, String email) {
+        this.username = username;
+        this.token = token;
+        this.fullName = fullName;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+    }
+
     public int getId() {
         return id;
     }

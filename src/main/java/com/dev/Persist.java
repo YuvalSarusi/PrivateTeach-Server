@@ -63,11 +63,7 @@ public class Persist {
         return teachers;
     }
     public boolean isTeacherUsernameExist(String username){
-        boolean isExist = false;
-        if (this.getTeacherByUsername(username) != null){
-            isExist = true;
-        }
-        return isExist;
+        return this.getTeacherByUsername(username) != null;
     }
     public String checkTeacherExist(String username, String token){
         String answerToken;
@@ -93,10 +89,10 @@ public class Persist {
             String email,
             int price,
             String subject
-             ){
+            ){
         Session session = sessionFactory.openSession();
         String success = "usernameExist";
-        if (!this.isTeacherUsernameExist(username)){
+        if (!this.isTeacherUsernameExist(username) && !this.isStudentUsernameExist(username)){
             Transaction transaction = session.beginTransaction();
             Teacher teacher = new Teacher(username,token,fullName,phoneNumber,email,price,subject);
             session.saveOrUpdate(teacher);
@@ -125,20 +121,60 @@ public class Persist {
                 .uniqueResult();
         return student;
     }
-
-    //lessons methods:
-    public Boolean addLesson(Date startDate, Date endDate, String teacherToken, String studentToken){
+    public boolean isStudentUsernameExist(String username){
+        return getStudentByUsername(username) != null;
+    }
+    public String createStudent(
+            String username,
+            String token,
+            String fullName,
+            String phoneNumber,
+            String email
+            ){
         Session session = sessionFactory.openSession();
-        Boolean success = false;
-        Teacher teacher = this.getTeacherByToken(teacherToken);
-        Student student = this.getStudentByToken(studentToken);
-        if (teacher != null){
+        String success = "usernameExist";
+        if (!this.isTeacherUsernameExist(username) && !this.isStudentUsernameExist(username)){
             Transaction transaction = session.beginTransaction();
-            Lesson lesson = new Lesson(startDate, endDate, teacher,student);
-            session.saveOrUpdate(lesson);
-            success = true;
+            Student student = new Student(username,token,fullName,phoneNumber,email);
+            session.saveOrUpdate(student);
+            success = student.getToken();
             transaction.commit();
             session.close();
+        }
+        return success;
+    }
+    public String checkStudentExist(String username, String token){
+        String answerToken;
+        Student student = this.getStudentByUsername(username);
+        if (student == null){
+            answerToken = "usernameDoesn'tExist";
+        }
+        else{
+            if (!student.getToken().equals(token)){
+                answerToken = "passwordWrong";
+            }
+            else{
+                answerToken = student.getToken();
+            }
+        }
+        return answerToken;
+    }
+
+    //lessons methods:
+    public String addLesson(Date startDate, Date endDate, String teacherToken, String studentToken){
+        Session session = sessionFactory.openSession();
+        String success = null;
+        Teacher teacher = this.getTeacherByToken(teacherToken);
+        Student student = this.getStudentByToken(studentToken);
+        if (teacher != null && startDate != null && endDate != null){ //student != null - not a problem. can be
+            Lesson lesson = new Lesson(startDate, endDate, teacher,student);
+            success = this.isLegalLessen(lesson);
+            if (success.equals("success")){
+                Transaction transaction = session.beginTransaction();
+                session.saveOrUpdate(lesson);
+                transaction.commit();
+                session.close();
+            }
         }
         return success;
     }
@@ -183,5 +219,31 @@ public class Persist {
             }
         }
         return lessons;
+    }
+    private String isLegalLessen(Lesson lesson){
+        String response = "success";
+        Date currentDate = new Date();
+        //if the start date is not before end date needed to be chosen earlier start date
+        if (!lesson.getStartDate().before(lesson.getEndDate())){
+            response = "EarlierDate";
+        }
+        //if the start date is not after current date - needed to be chosen later date
+        else if (!lesson.getStartDate().after(currentDate)){
+            response = "LaterDate";
+        }
+        else{
+            List<Lesson> futureLessons = getTeacherFutureLessons(lesson.getTeacher().getToken());
+            for (int i=0; i<futureLessons.size() && response.equals("success"); i++ ){
+                Lesson temp = futureLessons.get(i);
+                if (temp.isInMiddle(lesson) != null){
+                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                    response = format.format(temp.isInMiddle(lesson));
+                }
+                else if (lesson.isInMiddle(lesson) != null){
+                    response = "MiddleExist";
+                }
+            }
+        }
+        return response;
     }
 }

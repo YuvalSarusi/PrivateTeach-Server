@@ -31,6 +31,7 @@ public class TestController {
 
     }
 
+    //teacher methods
     @RequestMapping(value = "check-teacher-exist", method = RequestMethod.GET)
     public String checkTeacherExist (@RequestParam String username, String token) {
         //LOGGER.info("success");
@@ -70,23 +71,6 @@ public class TestController {
         return persist.getTeacherByToken(token);
     }
 
-    @RequestMapping(value = "add-new-lesson", method = RequestMethod.POST)
-    public String addLesson(@RequestParam String startDate, String endDate, String teacherToken, String studentToken ){
-        String returnedToken = "failed"; //return String so the app can get it with StringResponseListener
-        Date newStartDate;
-        Date newEndDate;
-        try {
-             newStartDate = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(startDate);
-             newEndDate = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(endDate);
-             if (persist.addLesson(newStartDate, newEndDate, teacherToken,studentToken)){
-                 returnedToken = "success";
-             }
-        } catch (ParseException e) {
-            returnedToken = "formatProblem"; //return error of format
-            e.printStackTrace();
-        }
-        return returnedToken;
-    }
 
     @RequestMapping(value = "get-teacher-past-lessons", method = RequestMethod.GET)
     public List<Lesson> getTeacherPastLessons (@RequestParam String teacherToken) {
@@ -98,5 +82,40 @@ public class TestController {
         return persist.getTeacherFutureLessons(teacherToken);
     }
 
+
+    //lessons methods
+    @RequestMapping(value = "add-new-lesson", method = RequestMethod.POST)
+    public String addLesson(@RequestParam String startDate, String endDate, String teacherToken, String studentToken ){
+        String returnedToken = "failed"; //return String so the app can get it with StringResponseListener
+        Date newStartDate;
+        Date newEndDate;
+        try {
+             newStartDate = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(startDate);
+             newEndDate = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(endDate);
+             returnedToken = persist.addLesson(newStartDate, newEndDate, teacherToken,studentToken);
+        } catch (ParseException e) {
+            returnedToken = "formatProblem"; //return error of format
+            e.printStackTrace();
+        }
+        return returnedToken;
+    }
+
+
+    //student methods
+
+    @RequestMapping(value = "create-new-student", method = RequestMethod.POST)
+    public String createNewStudent (@RequestParam   String username,
+                                          String token,
+                                          String fullName,
+                                          String phoneNumber,
+                                          String email
+                                          ) {
+        return persist.createStudent(username, token, fullName, phoneNumber, email);
+    }
+    @RequestMapping(value = "check-student-exist", method = RequestMethod.GET)
+    public String checkStudentExist (@RequestParam String username, String token) {
+        //LOGGER.info("success");
+        return persist.checkStudentExist(username,token);
+    }
 
 }
