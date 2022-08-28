@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.PostConstruct;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -118,4 +119,85 @@ public class TestController {
         return persist.checkStudentExist(username,token);
     }
 
+    @RequestMapping(value = "get-all-available-lessons", method = RequestMethod.GET)
+    public List<Lesson> getAllClearLessons(){
+        return persist.getAllAvailableLessons();
+    }
+
+    @RequestMapping(value = "get-subject-filtered-available-lessons", method = RequestMethod.GET)
+    public List<Lesson> getSubjectFilteredAvailableLessons(@RequestParam String subject){
+        return persist.getSubjectFilteredAvailableLessons(subject);
+    }
+    @RequestMapping(value = "get-price-filtered-available-lessons", method = RequestMethod.GET)
+    public List<Lesson> getPriceFilteredAvailableLessons(@RequestParam String price){
+        try{
+            int intPrice = Integer.parseInt(price);
+            return persist.getPriceFilteredAvailableLessons(intPrice);
+        }
+        catch (NumberFormatException e){
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+    @RequestMapping(value = "get-student-lessons-by-token", method = RequestMethod.GET)
+    public List<Lesson> getStudentLessonsByToken(@RequestParam String token){
+            return persist.getStudentLessonsByToken(token);
+    }
+
+    @RequestMapping(value = "sign-into-lesson", method = RequestMethod.GET)
+    public String signIntoLesson(@RequestParam String studentToken, String lessonId){
+        try{
+            int id = Integer.parseInt(lessonId);
+            return persist.signIntoLesson(id,studentToken);
+        }
+        catch (NumberFormatException e){
+            e.printStackTrace();
+            return "formatException";
+        }
+
+    }
+
+    @RequestMapping(value = "get-filtered-available-lessons", method = RequestMethod.GET)
+    public List<Lesson> getFilteredAvailableLesson(@RequestParam String subject, String price){
+        int intPrice;
+        List<Lesson> lessons = null;
+        if (subject.equals("") && price.equals("")){
+            lessons = persist.getAllAvailableLessons();
+        }
+        else if (!price.equals("") && subject.equals("")){
+            try{
+                intPrice = Integer.parseInt(price);
+                lessons =  persist.getPriceFilteredAvailableLessons(intPrice);
+            }
+            catch (NumberFormatException e){
+                e.printStackTrace();
+            }
+
+        }
+        else if (!subject.equals("") && price.equals("")){
+            lessons = persist.getSubjectFilteredAvailableLessons(subject);
+        }
+        else{
+            try{
+                intPrice = Integer.parseInt(price);
+            }
+            catch (NumberFormatException e){
+                e.printStackTrace();
+                return lessons;
+            }
+            lessons =  persist.getFilteredAvailableLessons(subject,intPrice);
+        }
+        return lessons;
+    }
+
+    @RequestMapping(value = "get-highest-price", method = RequestMethod.GET)
+    public String getHighestPrice(){
+        return persist.getHighestPrice();
+    }
+    @RequestMapping(value = "get-lowest-price", method = RequestMethod.GET)
+    public String getLowestPrice(){
+        return persist.getLowestPrice();
+    }
 }

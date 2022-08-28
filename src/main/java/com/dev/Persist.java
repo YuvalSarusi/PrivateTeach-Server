@@ -188,6 +188,16 @@ public class Persist {
         }
         return lessons;
     }
+    public List<Lesson> getSortedLesson(){
+        Session session = sessionFactory.openSession();
+        List<Lesson> lessons = session.createQuery("FROM Lesson l ORDER BY l.teacher.price")
+                .list();
+        for (Lesson lesson:lessons){
+            lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
+            lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+        }
+        return lessons;
+    }
     public List<Lesson> getTeacherFutureLessons(String teacherToken){
         Session session = sessionFactory.openSession();
         List<Lesson> tempLessons = session.createQuery("FROM Lesson l WHERE l.teacher.token =: token")
@@ -245,5 +255,99 @@ public class Persist {
             }
         }
         return response;
+    }
+    public List<Lesson> getAllAvailableLessons(){
+        Session session = sessionFactory.openSession();
+        List<Lesson> lessons = session.createQuery("FROM Lesson l WHERE l.student = null ")
+                .list();
+        for (Lesson lesson:lessons){ //add String date so the client can read it as a String and format it
+            lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
+            lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+        }
+        return lessons;
+    }
+    public List<Lesson> getSubjectFilteredAvailableLessons(String subject){
+        Session session = sessionFactory.openSession();
+        List<Lesson> lessons = session.createQuery("FROM Lesson l WHERE l.teacher.subject =: subject AND l.student = null")
+                .setParameter("subject", subject)
+                .list();
+        for (Lesson lesson:lessons){
+            lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
+            lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+        }
+        return lessons;
+    }
+    public List<Lesson> getPriceFilteredAvailableLessons(int price){
+        Session session = sessionFactory.openSession();
+        List<Lesson> lessons = session.createQuery("FROM Lesson l WHERE l.teacher.price <=: price AND l.student = null")
+                .setParameter("price", price)
+                .list();
+        for (Lesson lesson:lessons){
+            lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
+            lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+        }
+        return lessons;
+    }
+    public List<Lesson> getFilteredAvailableLessons(String subject, int price){
+        Session session = sessionFactory.openSession();
+        List<Lesson> lessons = session.createQuery(
+                        "FROM Lesson l WHERE l.teacher.price <=: price AND l.teacher.subject =: subject AND l.student = null"
+                )
+                .setParameter("price", price)
+                .setParameter("subject",subject)
+                .list();
+        for (Lesson lesson:lessons){
+            lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
+            lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+        }
+        return lessons;
+    }
+    public List<Lesson> getStudentLessonsByToken(String token){
+        Session session = sessionFactory.openSession();
+        List<Lesson> lessons = session.createQuery("FROM Lesson l WHERE l.student.token =: token")
+                .setParameter("token", token)
+                .list();
+        for (Lesson lesson:lessons){
+            lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
+            lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+        }
+        return lessons;
+    }
+    public String signIntoLesson(int lessonId, String studentToken){
+        Session session = sessionFactory.openSession();
+        String response = "success";
+        Lesson chosenLesson =(Lesson) session
+                .createQuery("FROM Lesson l WHERE l.student.token =: token AND l.id =: id")
+                .setParameter("token", studentToken)
+                .setParameter("id",lessonId)
+                .uniqueResult();
+        if (chosenLesson == null){
+            response = "doesn'tExistLesson";
+        }
+        else if(chosenLesson.getStudent() != null) {
+            response = "signedLesson";
+        }
+        else{
+            Student student = getStudentByToken(studentToken);
+            if (student == null){
+                response = "doesn'tExistStudent";
+            }
+            else{
+
+                chosenLesson.setStudent(student);
+                session.saveOrUpdate(chosenLesson);
+            }
+        }
+        return response;
+    }
+    public String getHighestPrice(){
+        List<Lesson> lessons = this.getSortedLesson();
+        int highestPrice = lessons.get(lessons.size()-1).getTeacher().getPrice();
+        return String.valueOf(highestPrice);
+    }
+    public String getLowestPrice(){
+        List<Lesson> lessons = this.getSortedLesson();
+        int lowestPrice = lessons.get(0).getTeacher().getPrice();
+        return String.valueOf(lowestPrice);
     }
 }
