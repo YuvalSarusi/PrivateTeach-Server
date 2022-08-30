@@ -260,35 +260,50 @@ public class Persist {
         Session session = sessionFactory.openSession();
         List<Lesson> lessons = session.createQuery("FROM Lesson l WHERE l.student = null ")
                 .list();
-        for (Lesson lesson:lessons){ //add String date so the client can read it as a String and format it
-            lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
-            lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+        Date date = new Date();
+        List<Lesson> futureLessons = new ArrayList<>();
+        for (Lesson lesson:lessons){
+            if (date.before(lesson.getStartDate())){
+                lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
+                lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+                futureLessons.add(lesson);
+            }
         }
-        return lessons;
+        return futureLessons;
     }
     public List<Lesson> getSubjectFilteredAvailableLessons(String subject){
         Session session = sessionFactory.openSession();
         List<Lesson> lessons = session.createQuery("FROM Lesson l WHERE l.teacher.subject =: subject AND l.student = null")
                 .setParameter("subject", subject)
                 .list();
+        Date date = new Date();
+        List<Lesson> futureLessons = new ArrayList<>();
         for (Lesson lesson:lessons){
-            lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
-            lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+            if (date.before(lesson.getStartDate())){
+                lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
+                lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+                futureLessons.add(lesson);
+            }
         }
-        return lessons;
+        return futureLessons;
     }
     public List<Lesson> getPriceFilteredAvailableLessons(int price){
         Session session = sessionFactory.openSession();
         List<Lesson> lessons = session.createQuery("FROM Lesson l WHERE l.teacher.price <=: price AND l.student = null")
                 .setParameter("price", price)
                 .list();
+        Date date = new Date();
+        List<Lesson> futureLessons = new ArrayList<>();
         for (Lesson lesson:lessons){
-            lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
-            lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+            if (date.before(lesson.getStartDate())){
+                lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
+                lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+                futureLessons.add(lesson);
+            }
         }
-        return lessons;
+        return futureLessons;
     }
-    public List<Lesson> getFilteredAvailableLessons(String subject, int price){
+    public List<Lesson> getFilteredAvailableLessons(String subject, int price) {
         Session session = sessionFactory.openSession();
         List<Lesson> lessons = session.createQuery(
                         "FROM Lesson l WHERE l.teacher.price <=: price AND l.teacher.subject =: subject AND l.student = null"
@@ -296,11 +311,16 @@ public class Persist {
                 .setParameter("price", price)
                 .setParameter("subject",subject)
                 .list();
+        Date date = new Date();
+        List<Lesson> futureLessons = new ArrayList<>();
         for (Lesson lesson:lessons){
-            lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
-            lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+            if (date.before(lesson.getStartDate())){
+                lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
+                lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+                futureLessons.add(lesson);
+            }
         }
-        return lessons;
+        return futureLessons;
     }
     public List<Lesson> getStudentLessonsByToken(String token){
         Session session = sessionFactory.openSession();
