@@ -102,6 +102,65 @@ public class Persist {
         }
         return success;
     }
+    public List<Teacher> getUsernameFilterTeacher(String username){
+        Session session = sessionFactory.openSession();
+        List<Teacher> list = session.createQuery("FROM Teacher t WHERE t.username =: username")
+                .setParameter("username",username)
+                .list();
+        return list;
+    }
+    public List<Teacher> getSubjectFilterTeacher(String subject){
+        Session session = sessionFactory.openSession();
+        List<Teacher> list = session.createQuery("FROM Teacher t WHERE t.subject =: subject")
+                .setParameter("subject",subject)
+                .list();
+        return list;
+    }
+    public List<Teacher> getPriceFilterTeacher(int price){
+        Session session = sessionFactory.openSession();
+        List<Teacher> list = session.createQuery("FROM Teacher t WHERE t.price<=: price")
+                .setParameter("price",price)
+                .list();
+        return list;
+    }
+    /*
+    public List<Teacher> getFilterTeacher(String username, String subject, int price){
+
+        Session session = sessionFactory.openSession();
+        List<Teacher> list = session.createQuery(
+                "FROM Teacher t WHERE t.username=:username AND t.subject =: subject AND t.price <=:price"
+                )
+                .setParameter("username", username)
+                .setParameter("subject",subject)
+                .setParameter("price", price)
+                .list();
+        return list;
+    }
+    */
+    public List<Teacher> getFilterTeacher(String username,String subject, String price){
+        List<Teacher> list = this.getALlTeachers();
+        List<Teacher> temp = new ArrayList<>();
+        for (Teacher teacher:list){
+            if (!username.equals("") && !teacher.getUsername().equals(username)){
+                temp.add(teacher);
+            }
+            else if (!subject.equals("All") && !teacher.getSubject().equals(subject)){
+                temp.add(teacher);
+            }
+            else if (!price.equals("")) {
+                try {
+                    int intPrice = Integer.parseInt(price);
+                    if (intPrice < teacher.getPrice()){
+                        temp.add(teacher);
+                    }
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        list.removeAll(temp);
+        return list;
+    }
 
 
     //students methods:
@@ -303,7 +362,7 @@ public class Persist {
         }
         return futureLessons;
     }
-    public List<Lesson> getFilteredAvailableLessons(String subject, int price) {
+    public List<Lesson> getFilteredAvailableLessons(String subject, int price){
         Session session = sessionFactory.openSession();
         List<Lesson> lessons = session.createQuery(
                         "FROM Lesson l WHERE l.teacher.price <=: price AND l.teacher.subject =: subject AND l.student = null"

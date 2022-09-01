@@ -200,4 +200,27 @@ public class TestController {
     public String getLowestPrice(){
         return persist.getLowestPrice();
     }
+
+    @RequestMapping(value = "get-username-filter-teacher", method = RequestMethod.GET)
+    public List<Teacher> getUsernameFilterTeacher(String username){
+        return persist.getUsernameFilterTeacher(username);
+    }
+    @RequestMapping(value = "get-subject-filter-teacher", method = RequestMethod.GET)
+    public List<Teacher> getSubjectFilterTeacher(String subject){
+        return persist.getSubjectFilterTeacher(subject);
+    }
+    @RequestMapping(value = "get-price-filter-teacher", method = RequestMethod.GET)
+    public List<Teacher> getPriceFilterTeacher(String price){
+        try {
+            int intPrice = Integer.parseInt(price);
+            return persist.getPriceFilterTeacher(intPrice);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    @RequestMapping(value = "get-filter-teacher", method = RequestMethod.GET)
+    public List<Teacher> getFilterTeacher(String username, String subject, String price){
+        return persist.getFilterTeacher(username,subject,price);
+    }
 }
