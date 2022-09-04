@@ -412,7 +412,6 @@ public class Persist {
                 response = "doesn'tExistStudent";
             }
             else{
-
                 chosenLesson.setStudent(student);
                 session.saveOrUpdate(chosenLesson);
             }
@@ -429,4 +428,15 @@ public class Persist {
         int lowestPrice = lessons.get(0).getTeacher().getPrice();
         return String.valueOf(lowestPrice);
     }
+    public Lesson getLessonById(int id){
+        Session session =sessionFactory.openSession();
+        Lesson lesson = (Lesson) session
+                .createQuery("FROM Lesson l WHERE l.id =: id")
+                .setParameter("id",id)
+                .uniqueResult();
+        lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
+        lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+        return lesson;
+    }
+
 }

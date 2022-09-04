@@ -72,7 +72,6 @@ public class TestController {
         return persist.getTeacherByToken(token);
     }
 
-
     @RequestMapping(value = "get-teacher-past-lessons", method = RequestMethod.GET)
     public List<Lesson> getTeacherPastLessons (@RequestParam String teacherToken) {
         return persist.getTeacherPastLessons(teacherToken);
@@ -83,7 +82,28 @@ public class TestController {
         return persist.getTeacherFutureLessons(teacherToken);
     }
 
-
+    @RequestMapping(value = "get-username-filter-teacher", method = RequestMethod.GET)
+    public List<Teacher> getUsernameFilterTeacher(String username){
+        return persist.getUsernameFilterTeacher(username);
+    }
+    @RequestMapping(value = "get-subject-filter-teacher", method = RequestMethod.GET)
+    public List<Teacher> getSubjectFilterTeacher(String subject){
+        return persist.getSubjectFilterTeacher(subject);
+    }
+    @RequestMapping(value = "get-price-filter-teacher", method = RequestMethod.GET)
+    public List<Teacher> getPriceFilterTeacher(String price){
+        try {
+            int intPrice = Integer.parseInt(price);
+            return persist.getPriceFilterTeacher(intPrice);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    @RequestMapping(value = "get-filter-teacher", method = RequestMethod.GET)
+    public List<Teacher> getFilterTeacher(String username, String subject, String price){
+        return persist.getFilterTeacher(username,subject,price);
+    }
     //lessons methods
     @RequestMapping(value = "add-new-lesson", method = RequestMethod.POST)
     public String addLesson(@RequestParam String startDate, String endDate, String teacherToken, String studentToken ){
@@ -146,7 +166,7 @@ public class TestController {
             return persist.getStudentLessonsByToken(token);
     }
 
-    @RequestMapping(value = "sign-into-lesson", method = RequestMethod.GET)
+    @RequestMapping(value = "sign-into-lesson", method = RequestMethod.POST)
     public String signIntoLesson(@RequestParam String studentToken, String lessonId){
         try{
             int id = Integer.parseInt(lessonId);
@@ -158,7 +178,6 @@ public class TestController {
         }
 
     }
-
     @RequestMapping(value = "get-filtered-available-lessons", method = RequestMethod.GET)
     public List<Lesson> getFilteredAvailableLesson(@RequestParam String subject, String price){
         int intPrice;
@@ -191,7 +210,6 @@ public class TestController {
         }
         return lessons;
     }
-
     @RequestMapping(value = "get-highest-price", method = RequestMethod.GET)
     public String getHighestPrice(){
         return persist.getHighestPrice();
@@ -200,27 +218,16 @@ public class TestController {
     public String getLowestPrice(){
         return persist.getLowestPrice();
     }
-
-    @RequestMapping(value = "get-username-filter-teacher", method = RequestMethod.GET)
-    public List<Teacher> getUsernameFilterTeacher(String username){
-        return persist.getUsernameFilterTeacher(username);
-    }
-    @RequestMapping(value = "get-subject-filter-teacher", method = RequestMethod.GET)
-    public List<Teacher> getSubjectFilterTeacher(String subject){
-        return persist.getSubjectFilterTeacher(subject);
-    }
-    @RequestMapping(value = "get-price-filter-teacher", method = RequestMethod.GET)
-    public List<Teacher> getPriceFilterTeacher(String price){
-        try {
-            int intPrice = Integer.parseInt(price);
-            return persist.getPriceFilterTeacher(intPrice);
-        } catch (NumberFormatException e) {
+    @RequestMapping(value = "get-lesson-by-id", method = RequestMethod.GET)
+    public Lesson getLessonById(String id){
+        try{
+            int intId = Integer.parseInt(id);
+            return persist.getLessonById(intId);
+        }
+        catch (NumberFormatException e){
             e.printStackTrace();
         }
         return null;
     }
-    @RequestMapping(value = "get-filter-teacher", method = RequestMethod.GET)
-    public List<Teacher> getFilterTeacher(String username, String subject, String price){
-        return persist.getFilterTeacher(username,subject,price);
-    }
+
 }
