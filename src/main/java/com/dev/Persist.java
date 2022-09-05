@@ -160,6 +160,31 @@ public class Persist {
         list.removeAll(temp);
         return list;
     }
+    public String changeTeacherDetails(String teacherToken, String fullName, String phoneNumber, String email, int price, String subject){
+        String success = "success";
+        Session session = sessionFactory.openSession();
+        Teacher teacher = getTeacherByToken(teacherToken);
+        if (!fullName.equals("")){
+            teacher.setFullName(fullName);
+        }
+        if (!phoneNumber.equals("")){
+            teacher.setPhoneNumber(phoneNumber);
+        }
+        if (!email.equals("")){
+            teacher.setEmail(email);
+        }
+        if (!(price == 0)){
+            teacher.setPrice(price);
+        }
+        if (!subject.equals("")){
+            teacher.setSubject(subject);
+        }
+        Transaction transaction = session.beginTransaction();
+        session.saveOrUpdate(teacher);
+        transaction.commit();
+        session.close();
+        return success;
+    }
 
 
     //students methods:

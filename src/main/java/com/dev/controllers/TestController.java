@@ -105,6 +105,17 @@ public class TestController {
     public List<Teacher> getFilterTeacher(String username, String subject, String price){
         return persist.getFilterTeacher(username,subject,price);
     }
+    @RequestMapping(value = "change-teacher-details",method = RequestMethod.POST)
+    public String changeTeacherDetails(String token, String fullName, String phone, String email, String price, String subject){
+        try{
+            int intPrice = Integer.parseInt(price);
+            return persist.changeTeacherDetails(token,fullName,phone,email,intPrice,subject);
+        }
+        catch (NumberFormatException e){
+            e.printStackTrace();
+        }
+        return "formatException";
+    }
 
 
     //student methods
