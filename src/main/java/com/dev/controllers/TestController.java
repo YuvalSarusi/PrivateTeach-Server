@@ -2,6 +2,7 @@ package com.dev.controllers;
 
 import com.dev.Persist;
 import com.dev.objects.Lesson;
+import com.dev.objects.Student;
 import com.dev.objects.Teacher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,22 +105,6 @@ public class TestController {
     public List<Teacher> getFilterTeacher(String username, String subject, String price){
         return persist.getFilterTeacher(username,subject,price);
     }
-    //lessons methods
-    @RequestMapping(value = "add-new-lesson", method = RequestMethod.POST)
-    public String addLesson(@RequestParam String startDate, String endDate, String teacherToken, String studentToken ){
-        String returnedToken = "failed"; //return String so the app can get it with StringResponseListener
-        Date newStartDate;
-        Date newEndDate;
-        try {
-             newStartDate = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(startDate);
-             newEndDate = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(endDate);
-             returnedToken = persist.addLesson(newStartDate, newEndDate, teacherToken,studentToken);
-        } catch (ParseException e) {
-            returnedToken = "formatProblem"; //return error of format
-            e.printStackTrace();
-        }
-        return returnedToken;
-    }
 
 
     //student methods
@@ -138,12 +123,36 @@ public class TestController {
         //LOGGER.info("success");
         return persist.checkStudentExist(username,token);
     }
+    @RequestMapping(value = "get-student-by-token", method = RequestMethod.GET)
+    public Student getStudentByToken(String token){
+        return persist.getStudentByToken(token);
+    }
+    @RequestMapping(value = "change-student-details",method = RequestMethod.POST)
+    public String changeStudentDetails(String token, String fullName, String phone, String email){
+        return persist.changeStudentDetails(token,fullName,phone,email);
+    }
 
+
+    //lessons methods
+    @RequestMapping(value = "add-new-lesson", method = RequestMethod.POST)
+    public String addLesson(@RequestParam String startDate, String endDate, String teacherToken, String studentToken ){
+        String returnedToken = "failed"; //return String so the app can get it with StringResponseListener
+        Date newStartDate;
+        Date newEndDate;
+        try {
+            newStartDate = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(startDate);
+            newEndDate = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(endDate);
+            returnedToken = persist.addLesson(newStartDate, newEndDate, teacherToken,studentToken);
+        } catch (ParseException e) {
+            returnedToken = "formatProblem"; //return error of format
+            e.printStackTrace();
+        }
+        return returnedToken;
+    }
     @RequestMapping(value = "get-all-available-lessons", method = RequestMethod.GET)
     public List<Lesson> getAllClearLessons(){
         return persist.getAllAvailableLessons();
     }
-
     @RequestMapping(value = "get-subject-filtered-available-lessons", method = RequestMethod.GET)
     public List<Lesson> getSubjectFilteredAvailableLessons(@RequestParam String subject){
         return persist.getSubjectFilteredAvailableLessons(subject);
@@ -160,12 +169,10 @@ public class TestController {
         }
 
     }
-
     @RequestMapping(value = "get-student-lessons-by-token", method = RequestMethod.GET)
     public List<Lesson> getStudentLessonsByToken(@RequestParam String token){
             return persist.getStudentLessonsByToken(token);
     }
-
     @RequestMapping(value = "sign-into-lesson", method = RequestMethod.POST)
     public String signIntoLesson(@RequestParam String studentToken, String lessonId){
         try{
@@ -229,5 +236,12 @@ public class TestController {
         }
         return null;
     }
-
+    @RequestMapping(value = "get-student-signed-past-lessons", method = RequestMethod.GET)
+    public List<Lesson> getStudentSignedPastLessons(String studentToken){
+        return persist.getStudentSignedPastLessons(studentToken);
+    }
+    @RequestMapping(value = "get-student-signed-future-lessons", method = RequestMethod.GET)
+    public List<Lesson> getStudentFutureLessons(String studentToken){
+        return persist.getStudentSignedFutureLessons(studentToken);
+    }
 }

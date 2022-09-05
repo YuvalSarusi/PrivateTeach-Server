@@ -3,7 +3,6 @@ package com.dev;
 import com.dev.objects.Lesson;
 import com.dev.objects.Student;
 import com.dev.objects.Teacher;
-import com.dev.utils.Utils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -218,6 +217,36 @@ public class Persist {
         }
         return answerToken;
     }
+    public List<Lesson> getStudentSignedFutureLessons(String studentToken){
+        Date date = new Date();
+        List<Lesson> lessons = this.getStudentLessonsByToken(studentToken);
+        return getLaterLessonList(date, lessons);
+    }
+    public List<Lesson> getStudentSignedPastLessons(String studentToken){
+        Date date = new Date();
+        List<Lesson> lessons = this.getStudentLessonsByToken(studentToken);
+        return getEarlierLessonList(date, lessons);
+    }
+    public String changeStudentDetails(String studentToken, String fullName, String phoneNumber, String email){
+        String success = "success";
+        Session session = sessionFactory.openSession();
+        Student student = getStudentByToken(studentToken);
+        if (!fullName.equals("")){
+            student.setFullName(fullName);
+        }
+        if (!phoneNumber.equals("")){
+            student.setPhoneNumber(phoneNumber);
+        }
+        if (!email.equals("")){
+            student.setEmail(email);
+        }
+        Transaction transaction = session.beginTransaction();
+        session.saveOrUpdate(student);
+        transaction.commit();
+        session.close();
+        return success;
+    }
+
 
     //lessons methods:
     public String addLesson(Date startDate, Date endDate, String teacherToken, String studentToken){
@@ -262,32 +291,16 @@ public class Persist {
         List<Lesson> tempLessons = session.createQuery("FROM Lesson l WHERE l.teacher.token =: token")
                 .setParameter("token", teacherToken)
                 .list();
-        List<Lesson> lessons = new ArrayList<>();
-        for (Lesson lesson : tempLessons){
-            Date date = new Date();
-            if (date.before(lesson.getStartDate())){
-                lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
-                lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
-                lessons.add(lesson);
-            }
-        }
-        return lessons;
+        Date date = new Date();
+        return this.getLaterLessonList(date,tempLessons);
     }
     public List<Lesson> getTeacherPastLessons(String teacherToken){
         Session session = sessionFactory.openSession();
         List<Lesson> tempLessons = session.createQuery("FROM Lesson l WHERE l.teacher.token =: token")
                 .setParameter("token", teacherToken)
                 .list();
-        List<Lesson> lessons = new ArrayList<>();
-        for (Lesson lesson : tempLessons){
-            Date date = new Date();
-            if (date.after(lesson.getStartDate())){
-                lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
-                lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
-                lessons.add(lesson);
-            }
-        }
-        return lessons;
+        Date date = new Date();
+        return this.getEarlierLessonList(date, tempLessons);
     }
     private String isLegalLessen(Lesson lesson){
         String response = "success";
@@ -320,15 +333,7 @@ public class Persist {
         List<Lesson> lessons = session.createQuery("FROM Lesson l WHERE l.student = null ")
                 .list();
         Date date = new Date();
-        List<Lesson> futureLessons = new ArrayList<>();
-        for (Lesson lesson:lessons){
-            if (date.before(lesson.getStartDate())){
-                lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
-                lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
-                futureLessons.add(lesson);
-            }
-        }
-        return futureLessons;
+        return getLaterLessonList(date, lessons);
     }
     public List<Lesson> getSubjectFilteredAvailableLessons(String subject){
         Session session = sessionFactory.openSession();
@@ -336,15 +341,7 @@ public class Persist {
                 .setParameter("subject", subject)
                 .list();
         Date date = new Date();
-        List<Lesson> futureLessons = new ArrayList<>();
-        for (Lesson lesson:lessons){
-            if (date.before(lesson.getStartDate())){
-                lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
-                lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
-                futureLessons.add(lesson);
-            }
-        }
-        return futureLessons;
+        return getLaterLessonList(date, lessons);
     }
     public List<Lesson> getPriceFilteredAvailableLessons(int price){
         Session session = sessionFactory.openSession();
@@ -352,15 +349,7 @@ public class Persist {
                 .setParameter("price", price)
                 .list();
         Date date = new Date();
-        List<Lesson> futureLessons = new ArrayList<>();
-        for (Lesson lesson:lessons){
-            if (date.before(lesson.getStartDate())){
-                lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
-                lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
-                futureLessons.add(lesson);
-            }
-        }
-        return futureLessons;
+        return getLaterLessonList(date, lessons);
     }
     public List<Lesson> getFilteredAvailableLessons(String subject, int price){
         Session session = sessionFactory.openSession();
@@ -371,15 +360,7 @@ public class Persist {
                 .setParameter("subject",subject)
                 .list();
         Date date = new Date();
-        List<Lesson> futureLessons = new ArrayList<>();
-        for (Lesson lesson:lessons){
-            if (date.before(lesson.getStartDate())){
-                lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
-                lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
-                futureLessons.add(lesson);
-            }
-        }
-        return futureLessons;
+        return getLaterLessonList(date, lessons);
     }
     public List<Lesson> getStudentLessonsByToken(String token){
         Session session = sessionFactory.openSession();
@@ -396,8 +377,7 @@ public class Persist {
         Session session = sessionFactory.openSession();
         String response = "success";
         Lesson chosenLesson =(Lesson) session
-                .createQuery("FROM Lesson l WHERE l.student.token =: token AND l.id =: id")
-                .setParameter("token", studentToken)
+                .createQuery("FROM Lesson l WHERE l.id =: id")
                 .setParameter("id",lessonId)
                 .uniqueResult();
         if (chosenLesson == null){
@@ -412,8 +392,11 @@ public class Persist {
                 response = "doesn'tExistStudent";
             }
             else{
+                Transaction transaction = session.beginTransaction();
                 chosenLesson.setStudent(student);
                 session.saveOrUpdate(chosenLesson);
+                transaction.commit();
+                session.close();
             }
         }
         return response;
@@ -439,4 +422,27 @@ public class Persist {
         return lesson;
     }
 
+    //help methods
+    private List<Lesson> getLaterLessonList(Date date, List<Lesson> lessons) {
+        List<Lesson> futureLessons = new ArrayList<>();
+        for (Lesson lesson:lessons){
+            if (date.before(lesson.getStartDate())){
+                lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
+                lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+                futureLessons.add(lesson);
+            }
+        }
+        return futureLessons;
+    }
+    private List<Lesson> getEarlierLessonList(Date date, List<Lesson> lessons) {
+        List<Lesson> futureLessons = new ArrayList<>();
+        for (Lesson lesson:lessons){
+            if (date.after(lesson.getStartDate())){
+                lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
+                lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+                futureLessons.add(lesson);
+            }
+        }
+        return futureLessons;
+    }
 }
