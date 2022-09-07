@@ -6,6 +6,7 @@ import com.dev.objects.Teacher;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.engine.transaction.internal.TransactionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -136,7 +137,7 @@ public class Persist {
         return list;
     }
     */
-    public List<Teacher> getFilterTeacher(String username,String subject, String price){
+    public List<Teacher> getFilterTeachers(String username, String subject, String price){
         List<Teacher> list = this.getALlTeachers();
         List<Teacher> temp = new ArrayList<>();
         for (Teacher teacher:list){
@@ -184,6 +185,27 @@ public class Persist {
         transaction.commit();
         session.close();
         return success;
+    }
+    public String deleteLesson(String teacherToken, int lessonId){
+        Session session = sessionFactory.openSession();
+        Lesson lesson = getLessonById(lessonId);
+        String returnedValue = "success";
+        if (lesson == null){
+            returnedValue = "unExistLesson";
+        }
+        else if (!lesson.getTeacher().getToken().equals(teacherToken)){
+            returnedValue = "wrongTeacher";
+        }
+        else if (lesson.getStudent() != null){
+            returnedValue = "signedLesson";
+        }
+        else{
+            Transaction transaction = session.beginTransaction();
+            session.delete(lesson);
+            transaction.commit();
+            session.close();
+        }
+        return  returnedValue;
     }
 
 
@@ -327,32 +349,6 @@ public class Persist {
         Date date = new Date();
         return this.getEarlierLessonList(date, tempLessons);
     }
-    private String isLegalLessen(Lesson lesson){
-        String response = "success";
-        Date currentDate = new Date();
-        //if the start date is not before end date needed to be chosen earlier start date
-        if (!lesson.getStartDate().before(lesson.getEndDate())){
-            response = "EarlierDate";
-        }
-        //if the start date is not after current date - needed to be chosen later date
-        else if (!lesson.getStartDate().after(currentDate)){
-            response = "LaterDate";
-        }
-        else{
-            List<Lesson> futureLessons = getTeacherFutureLessons(lesson.getTeacher().getToken());
-            for (int i=0; i<futureLessons.size() && response.equals("success"); i++ ){
-                Lesson temp = futureLessons.get(i);
-                if (temp.isInMiddle(lesson) != null){
-                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-                    response = format.format(temp.isInMiddle(lesson));
-                }
-                else if (lesson.isInMiddle(lesson) != null){
-                    response = "MiddleExist";
-                }
-            }
-        }
-        return response;
-    }
     public List<Lesson> getAllAvailableLessons(){
         Session session = sessionFactory.openSession();
         List<Lesson> lessons = session.createQuery("FROM Lesson l WHERE l.student = null ")
@@ -436,16 +432,17 @@ public class Persist {
         int lowestPrice = lessons.get(0).getTeacher().getPrice();
         return String.valueOf(lowestPrice);
     }
-    public Lesson getLessonById(int id){
-        Session session =sessionFactory.openSession();
+    public Lesson getLessonById(int id) {
+        Session session = sessionFactory.openSession();
         Lesson lesson = (Lesson) session
                 .createQuery("FROM Lesson l WHERE l.id =: id")
-                .setParameter("id",id)
+                .setParameter("id", id)
                 .uniqueResult();
         lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
         lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
         return lesson;
     }
+
 
     //help methods
     private List<Lesson> getLaterLessonList(Date date, List<Lesson> lessons) {
@@ -470,4 +467,31 @@ public class Persist {
         }
         return futureLessons;
     }
+    private String isLegalLessen(Lesson lesson){
+        String response = "success";
+        Date currentDate = new Date();
+        //if the start date is not before end date needed to be chosen earlier start date
+        if (!lesson.getStartDate().before(lesson.getEndDate())){
+            response = "EarlierDate";
+        }
+        //if the start date is not after current date - needed to be chosen later date
+        else if (!lesson.getStartDate().after(currentDate)){
+            response = "LaterDate";
+        }
+        else{
+            List<Lesson> futureLessons = getTeacherFutureLessons(lesson.getTeacher().getToken());
+            for (int i=0; i<futureLessons.size() && response.equals("success"); i++ ){
+                Lesson temp = futureLessons.get(i);
+                if (temp.isInMiddle(lesson) != null){
+                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                    response = format.format(temp.isInMiddle(lesson));
+                }
+                else if (lesson.isInMiddle(lesson) != null){
+                    response = "MiddleExist";
+                }
+            }
+        }
+        return response;
+    }
+
 }

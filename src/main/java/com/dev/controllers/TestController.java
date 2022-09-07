@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.PostConstruct;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -103,13 +102,24 @@ public class TestController {
     }
     @RequestMapping(value = "get-filter-teacher", method = RequestMethod.GET)
     public List<Teacher> getFilterTeacher(String username, String subject, String price){
-        return persist.getFilterTeacher(username,subject,price);
+        return persist.getFilterTeachers(username,subject,price);
     }
     @RequestMapping(value = "change-teacher-details",method = RequestMethod.POST)
     public String changeTeacherDetails(String token, String fullName, String phone, String email, String price, String subject){
         try{
             int intPrice = Integer.parseInt(price);
             return persist.changeTeacherDetails(token,fullName,phone,email,intPrice,subject);
+        }
+        catch (NumberFormatException e){
+            e.printStackTrace();
+        }
+        return "formatException";
+    }
+    @RequestMapping(value = "delete-lesson",method = RequestMethod.DELETE)
+    public String deleteLesson(String token, String id){
+        try{
+            int lessonId = Integer.parseInt(id);
+            return persist.deleteLesson(token,lessonId);
         }
         catch (NumberFormatException e){
             e.printStackTrace();
