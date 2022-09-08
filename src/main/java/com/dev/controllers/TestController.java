@@ -32,19 +32,18 @@ public class TestController {
 
     }
 
+
     //teacher methods
     @RequestMapping(value = "check-teacher-exist", method = RequestMethod.GET)
     public String checkTeacherExist (@RequestParam String username, String token) {
         //LOGGER.info("success");
         return persist.checkTeacherExist(username,token);
     }
-
     @RequestMapping(value = "get-all-teachers", method = RequestMethod.GET)
     public List<Teacher> getAllTeachers () {
         //LOGGER.info("success");
         return persist.getALlTeachers();
     }
-
     @RequestMapping(value = "create-new-teacher", method = RequestMethod.POST)
     public String createTeacher( @RequestParam
             String username,
@@ -66,22 +65,22 @@ public class TestController {
         }
         return returnedToken;
     }
-
     @RequestMapping(value = "get-teacher-by-token", method = RequestMethod.GET)
     public Teacher getTeacherByToken (@RequestParam String token) {
         return persist.getTeacherByToken(token);
     }
-
+    @RequestMapping(value = "get-teacher-by-username", method = RequestMethod.GET)
+    public Teacher getTeacherByUsername (@RequestParam String username) {
+        return persist.getTeacherByUsername(username);
+    }
     @RequestMapping(value = "get-teacher-past-lessons", method = RequestMethod.GET)
     public List<Lesson> getTeacherPastLessons (@RequestParam String teacherToken) {
         return persist.getTeacherPastLessons(teacherToken);
     }
-
     @RequestMapping(value = "get-teacher-future-lessons", method = RequestMethod.GET)
     public List<Lesson> getTeacherFutureLessons (@RequestParam String teacherToken) {
         return persist.getTeacherFutureLessons(teacherToken);
     }
-
     @RequestMapping(value = "get-username-filter-teacher", method = RequestMethod.GET)
     public List<Teacher> getUsernameFilterTeacher(String username){
         return persist.getUsernameFilterTeacher(username);
@@ -126,10 +125,13 @@ public class TestController {
         }
         return "formatException";
     }
+    @RequestMapping(value = "get-teacher-available-lessons-by-username", method = RequestMethod.GET)
+    public List<Lesson> getTeacherAvailableLessonsByUsername(String teacherUsername){
+        return persist.getTeacherAvailableLessonsByUsername(teacherUsername);
+    }
 
 
     //student methods
-
     @RequestMapping(value = "create-new-student", method = RequestMethod.POST)
     public String createNewStudent (@RequestParam   String username,
                                           String token,
@@ -148,10 +150,19 @@ public class TestController {
     public Student getStudentByToken(String token){
         return persist.getStudentByToken(token);
     }
+    @RequestMapping(value = "get-student-by-username", method = RequestMethod.GET)
+    public Student getStudentByUsername(String username){
+        return persist.getStudentByUsername(username);
+    }
     @RequestMapping(value = "change-student-details",method = RequestMethod.POST)
     public String changeStudentDetails(String token, String fullName, String phone, String email){
         return persist.changeStudentDetails(token,fullName,phone,email);
     }
+    @RequestMapping(value = "get-student-and-teacher-lessons",method = RequestMethod.GET)
+    public List<Lesson> getStudentAndTeacherLessons(String studentUsername, String teacherToken){
+        return persist.getStudentAndTeacherLesson(studentUsername,teacherToken);
+    }
+
 
 
     //lessons methods

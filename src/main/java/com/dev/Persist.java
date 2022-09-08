@@ -293,6 +293,14 @@ public class Persist {
         session.close();
         return success;
     }
+    public List<Lesson> getStudentAndTeacherLesson(String studentUsername, String teacherToken){
+        Session session = sessionFactory.openSession();
+        List<Lesson> lessons = session.createQuery("FROM Lesson l WHERE l.student != null AND l.student.username =: username AND l.teacher.token =: token")
+                .setParameter("username", studentUsername)
+                .setParameter("token",teacherToken)
+                .list();
+        return setStringDatesLessons(lessons);
+    }
 
 
     //lessons methods:
@@ -442,6 +450,13 @@ public class Persist {
         lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
         return lesson;
     }
+    public List<Lesson> getTeacherAvailableLessonsByUsername(String teacherUsername){
+        Session session = sessionFactory.openSession();
+        List<Lesson> lessons = session.createQuery("FROM Lesson l WHERE l.teacher.username =: username AND l.student = null")
+                .setParameter("username",teacherUsername)
+                .list();
+        return setStringDatesLessons(lessons);
+    }
 
 
     //help methods
@@ -493,5 +508,15 @@ public class Persist {
         }
         return response;
     }
+    private List<Lesson> setStringDatesLessons(List<Lesson> lessons) {
+        List<Lesson> newLessons = new ArrayList<>();
+        for (Lesson lesson:lessons){
+            lesson.setStartDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getStartDate()));
+            lesson.setEndDateString(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lesson.getEndDate()));
+            newLessons.add(lesson);
+        }
+        return newLessons;
+    }
+
 
 }
