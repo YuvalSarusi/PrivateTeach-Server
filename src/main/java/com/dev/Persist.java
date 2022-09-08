@@ -455,7 +455,7 @@ public class Persist {
         List<Lesson> lessons = session.createQuery("FROM Lesson l WHERE l.teacher.username =: username AND l.student = null")
                 .setParameter("username",teacherUsername)
                 .list();
-        return setStringDatesLessons(lessons);
+        return getLaterLessonList(new Date(), lessons);
     }
 
 
